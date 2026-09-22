@@ -32,5 +32,17 @@ class OllamaClient:
                 "Could not reach Ollama at "
                 f"{self.host}. Is the Ollama app running?"
             ) from exc
+        except requests.exceptions.HTTPError as exc:
+            detail = ""
+            try:
+                detail = resp.json().get("error", "")
+            except Exception:
+                pass
+            raise RuntimeError(
+                f"Ollama rejected the request for model '{self.model}'"
+                + (f": {detail}" if detail else "")
+                + ". Run `ollama list` and update DEFAULT_MODEL in src/config.py "
+                "if the name doesn't match."
+            ) from exc
         data = resp.json()
         return data["message"]["content"]
